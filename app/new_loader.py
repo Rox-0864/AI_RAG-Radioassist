@@ -14,6 +14,7 @@ NUEVO: Se han añadido mejoras para:
 # Importaciones necesarias
 import pdfplumber
 import os
+import re
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 # Ruta al documento PDF (ajústala si tu archivo tiene otro nombre o ubicación)
@@ -59,11 +60,19 @@ def load_data():
         full_text = full_text.replace("\xa0", " ")  # Elimina espacios duros
         full_text = full_text.replace("  ", " ")    # Reemplaza dobles espacios
 
+        # ===== NUEVO: Filtrado de leyendas de imágenes (aquí se eliminarán también de las tablas) =====
+        full_text = re.sub(
+        r"(Fig(ure|\.)?\s*\d+.*?(\n|$)|\[Imagen:.*?\]|Imagen\s*\d+)",
+        "",
+        full_text,
+        flags=re.IGNORECASE
+)
+
         print(f"Total de caracteres extraídos: {len(full_text)}")
 
         # === DIVIDIMOS EL TEXTO EN CHUNKS SEMÁNTICAMENTE COHERENTES ===
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1200,        # Aumentado para mantener contexto amplio
+            chunk_size=1000,        # Aumentado para mantener contexto amplio
             chunk_overlap=150,      # Buen solapamiento entre fragmentos
             separators=["\n\n", "\n", ".", " "]  # De mayor a menor prioridad semántica
         )
